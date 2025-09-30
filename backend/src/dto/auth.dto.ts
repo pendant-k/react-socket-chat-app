@@ -16,20 +16,20 @@ export interface SignupResponseDto {
 }
 
 // 로그인 요청 DTO
-export interface LoginDto {
+export interface LoginRequestDto {
     email: string;
     password: string;
 }
 
 // 로그인 응답 DTO
 export interface AuthResponseDto {
+    message: string;
     data: {
         id: string;
         email: string;
         fullName: string;
         profilePic: string;
     };
-    token?: string;
 }
 
 // 에러 응답 DTO

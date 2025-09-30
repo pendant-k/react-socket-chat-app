@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import {
     SignupDto,
-    LoginDto,
+    LoginRequestDto,
     AuthResponseDto,
     ErrorResponseDto,
 } from "../dto/index.js";
@@ -69,12 +69,54 @@ export const signup = async (
 };
 
 // 로그인
-export const login = (req: Request, res: Response) => {
+export const login = async (
+    req: Request<{}, AuthResponseDto | ErrorResponseDto, LoginRequestDto>,
+    res: Response<AuthResponseDto | ErrorResponseDto>
+) => {
     const { email, password } = req.body;
-    res.send("Login");
+    try {
+        const user = await User.findOne({ email });
+
+        if (!user) {
+            return res
+                .status(400)
+                .json({ message: "이메일 또는 비밀번호가 일치하지 않습니다." });
+        }
+
+        const isPasswordCorrect = await bcrypt.compare(password, user.password);
+
+        if (!isPasswordCorrect) {
+            return res
+                .status(400)
+                .json({ message: "이메일 또는 비밀번호가 일치하지 않습니다." });
+        }
+
+        generateToken(user._id.toString(), res);
+
+        res.status(200).json({
+            message: "로그인 성공",
+            data: {
+                id: user._id.toString(),
+                email: user.email,
+                fullName: user.fullName,
+                profilePic: user.profilePic,
+            },
+        });
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({ message: "Internal server error" });
+    }
 };
 
 // 로그아웃
 export const logout = (req: Request, res: Response) => {
-    res.send("Logout");
+    try {
+        res.cookie("jwt", "", {
+            maxAge: 0,
+        });
+        res.status(200).json({ message: "로그아웃 성공" });
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({ message: "Internal server error" });
+    }
 };
