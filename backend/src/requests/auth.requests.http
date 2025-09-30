@@ -28,3 +28,6 @@ Content-Type: application/json
 
 ### logout
 POST http://localhost:5001/api/auth/logout
+
+### checkAuth
+GET http://localhost:5001/api/auth/check-auth

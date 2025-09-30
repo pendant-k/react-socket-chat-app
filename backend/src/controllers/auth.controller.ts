@@ -8,6 +8,8 @@ import {
 import User from "../models/user.model.js";
 import bcrypt from "bcryptjs";
 import { generateToken } from "../lib/utils.js";
+import { IUser } from "../types/user.types.js";
+import cloudinary from "../lib/cloudinary.js";
 
 // Request 제네릭 첫번째는 Params
 // 회원가입
@@ -111,6 +113,7 @@ export const login = async (
 // 로그아웃
 export const logout = (req: Request, res: Response) => {
     try {
+        // res.clearCookie보다 명시적으로 토큰을 만료시킴
         res.cookie("jwt", "", {
             maxAge: 0,
         });
@@ -126,4 +129,50 @@ export const updateProfile = async (
     res: Response<AuthResponseDto | ErrorResponseDto>
 ) => {
     const { profilePic } = req.body;
+
+    try {
+        const userId = req.user._id as IUser["_id"];
+
+        if (!profilePic) {
+            return res
+                .status(400)
+                .json({ message: "Profile picture is required" });
+        }
+
+        const uploadResponse = await cloudinary.uploader.upload(profilePic);
+        const updatedUser = await User.findByIdAndUpdate(
+            userId,
+            {
+                profilePic: uploadResponse.secure_url,
+            },
+            // 업데이트된 사용자 반환을 위해서 new: true 추가
+            { new: true }
+        );
+
+        if (!updatedUser) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        res.status(200).json({
+            message: "Profile picture updated",
+            data: {
+                id: updatedUser._id.toString(),
+                email: updatedUser.email,
+                fullName: updatedUser.fullName,
+                profilePic: updatedUser.profilePic,
+            },
+        });
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({ message: "Internal server error" });
+    }
+};
+
+export const checkAuth = async (req: Request, res: Response) => {
+    try {
+        res.status(200).json(req.user);
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({ message: "Internal server error" });
+    }
 };
