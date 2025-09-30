@@ -35,5 +35,4 @@ export interface AuthResponseDto {
 // 에러 응답 DTO
 export interface ErrorResponseDto {
     message: string;
-    errors?: string[];
 }

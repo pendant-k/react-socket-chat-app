@@ -18,6 +18,12 @@ export const signup = async (
     const { fullName, email, password } = req.body;
 
     try {
+        if (!fullName || !email || !password) {
+            return res.status(400).json({
+                message: "모든 필드를 입력해주세요.",
+            });
+        }
+
         // Validation : 비밀번호 최소 길이 확인
         if (password.length < 6) {
             return res.status(400).json({
