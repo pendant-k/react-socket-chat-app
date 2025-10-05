@@ -14,6 +14,6 @@ router.post("/signup", signup);
 router.post("/login", login);
 router.post("/logout", logout);
 router.post("/update-profile", protectRoute, updateProfile);
-router.get("/check-auth", protectRoute, checkAuth);
+router.get("/check", protectRoute, checkAuth);
 
 export default router;
